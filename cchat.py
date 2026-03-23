@@ -196,7 +196,7 @@ _TOOLBAR_ICONS = {
 }
 
 
-def make_toolbar(s, prof_name, sc, has_ctx_fn):
+def make_toolbar(s, prof_name, sc, ctx_count_fn):
     def toolbar():
         mode = s.get("mode", "chat")
         danger = s.get("plan_danger", False) and mode == "plan"
@@ -204,7 +204,8 @@ def make_toolbar(s, prof_name, sc, has_ctx_fn):
         name = s["name"]
         sid = s.get("session_id", "")[:8] if s.get("session_id") else "new"
         turns = s.get("turns", 0)
-        ctx = " +ctx" if has_ctx_fn() else ""
+        nc = ctx_count_fn()
+        ctx = f" ctx:{nc}" if nc else ""
         return ANSI(
             f"\n{icon}"
             f"\033[1;36;45m \033[30m{name}\033[36m   {prof_name}   \033[33m{sid}\033[30m "
@@ -352,7 +353,7 @@ def build_file_context(paths):
                 warns.append(w)
             if content:
                 blocks.append(f'<file path="{p.name}">\n{content}\n</file>')
-    return "\n\n".join(blocks), warns
+    return "\n\n".join(blocks), warns, len(blocks)
 
 
 # --- spinner ---
@@ -384,10 +385,12 @@ class StaleSessionError(Exception):
     pass
 
 
-def run_claude(profile, s, message, claude_md=None, spinner_msg="thinking"):
+def run_claude(
+    profile, s, message, claude_md=None, spinner_msg="thinking", skip_perms=False
+):
     env = {**os.environ, **profile.get("env", {})}
     cmd = [profile["bin"], "--print", "--output-format", "json"]
-    if s.get("mode") == "plan":
+    if not skip_perms and s.get("mode") == "plan":
         if s.get("plan_danger"):
             cmd += ["--dangerously-skip-permissions"]
         else:
@@ -464,14 +467,16 @@ def apply_reply(s, reply, i, o, sid):
     save_session(s)
 
 
-def run_claude_safe(profile, s, message, claude_md=None, spinner_msg="thinking"):
+def run_claude_safe(
+    profile, s, message, claude_md=None, spinner_msg="thinking", skip_perms=False
+):
     """run_claude with automatic stale-session retry."""
     try:
-        return run_claude(profile, s, message, claude_md, spinner_msg)
+        return run_claude(profile, s, message, claude_md, spinner_msg, skip_perms)
     except StaleSessionError:
         print(f"  {Y}stale session — starting fresh{R}\n")
         s["session_id"] = None
-        return run_claude(profile, s, message, claude_md, spinner_msg)
+        return run_claude(profile, s, message, claude_md, spinner_msg, skip_perms)
 
 
 # --- handoff ---
@@ -574,7 +579,7 @@ def do_handoff(profile, s, filename, claude_md):
 
     print()
     reply, i, o, sid = run_claude_safe(
-        profile, s, msg, claude_md, spinner_msg="writing task"
+        profile, s, msg, claude_md, spinner_msg="writing task", skip_perms=True
     )
     if reply is None:
         print("cancelled.\n")
@@ -711,7 +716,7 @@ def run():
         }
         ctx = ""
         if args.file:
-            c, warns = build_file_context(args.file)
+            c, warns, _ = build_file_context(args.file)
             for w in warns:
                 print(f"  warn: {w}")
             ctx = c
@@ -746,9 +751,10 @@ def run():
     sc = skill_count(profile)
     pending_skill = None
     pending_ctx = ""  # pre-rendered file context for next message
+    pending_files = [0]  # mutable for closure access
 
-    def has_context():
-        return bool(pending_skill or pending_ctx)
+    def ctx_count():
+        return pending_files[0] + (1 if pending_skill else 0)
 
     ps = PromptSession(
         history=FileHistory(str(DIR / f"{sess_name}.history")),
@@ -758,7 +764,7 @@ def run():
         cursor=ModalCursorShapeConfig(),
         completer=CchatCompleter(),
         complete_while_typing=False,
-        bottom_toolbar=make_toolbar(s, prof_name, sc, has_context),
+        bottom_toolbar=make_toolbar(s, prof_name, sc, ctx_count),
         style=Style.from_dict({"bottom-toolbar": "noreverse"}),
     )
 
@@ -884,6 +890,7 @@ def run():
             s["system"] = CHAT_SYSTEM
             pending_skill = None
             pending_ctx = ""
+            pending_files[0] = 0
             save_session(s)
             print("compacted — fresh session started\n")
 
@@ -925,13 +932,13 @@ def run():
 
         elif line.startswith("/attach "):
             paths = line[8:].strip().split()
-            ctx, warns = build_file_context(paths)
+            ctx, warns, n = build_file_context(paths)
             for w in warns:
                 print(f"  warn: {w}")
             if ctx:
-                n = ctx.count("<file path=")
+                pending_files[0] += n
                 pending_ctx += ("\n\n" if pending_ctx else "") + ctx
-                print(f"  {n} file(s) armed — send your next message\n")
+                print(f"  {n} added, {pending_files[0]} file(s) armed\n")
 
         elif line.startswith("/"):
             print("unknown — /help for commands\n")
@@ -944,6 +951,7 @@ def run():
             if pending_skill:
                 parts.append(f"<skill>\n{pending_skill}\n</skill>")
                 pending_skill = None
+            pending_files[0] = 0
             parts.append(line)
             msg = "\n\n".join(parts)
             print()
