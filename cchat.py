@@ -257,7 +257,7 @@ def skill_count(profile):
         )
         / "skills"
     )
-    return len(list(d.iterdir())) if d.exists() else 0
+    return len([f for f in d.iterdir() if f.is_file()]) if d.exists() else 0
 
 
 def find_claude_md():
@@ -311,7 +311,7 @@ TEXT_EXTS = {
     ".kt",
     ".csv",
     ".lock",
-    ".env.example",
+    ".example",
 }
 
 
@@ -336,6 +336,10 @@ def build_file_context(paths):
         if p.suffix.lower() == ".zip":
             with tempfile.TemporaryDirectory() as tmp:
                 with zipfile.ZipFile(p) as z:
+                    total = sum(i.file_size for i in z.infolist())
+                    if total > MAX_FILE_KB * 1024 * 100:  # 100x single file limit
+                        warns.append(f"skipped {p.name} (zip too large: {total // 1024}kb uncompressed)")
+                        continue
                     z.extractall(tmp)
                 for fp in sorted(Path(tmp).rglob("*")):
                     if not fp.is_file():
@@ -389,7 +393,7 @@ def run_claude(
     profile, s, message, claude_md=None, spinner_msg="thinking", skip_perms=False
 ):
     env = {**os.environ, **profile.get("env", {})}
-    cmd = [profile["bin"], "--print", "--output-format", "json"]
+    cmd = [profile.get("bin", _claude_bin()), "--print", "--output-format", "json"]
     if not skip_perms and s.get("mode") == "plan":
         if s.get("plan_danger"):
             cmd += ["--dangerously-skip-permissions"]
@@ -427,9 +431,9 @@ def run_claude(
         err_low = err.lower()
         if (
             "valid session" in err_low
-            or "not found" in err_low
-            or "no conversation" in err_low
-            or "session id" in err_low
+            or "conversation not found" in err_low
+            or "session not found" in err_low
+            or "no conversation found" in err_low
         ):
             raise StaleSessionError(err)
         raise RuntimeError(err)
@@ -565,8 +569,12 @@ HANDOFF_REQ = (
 
 def _write_task(content, filename):
     p = Path.cwd() / filename
-    p.write_text(content)
-    print(f"  {G}wrote → {p}{R}\n")
+    try:
+        p.write_text(content)
+        print(f"  {G}wrote → {p}{R}\n")
+    except OSError as e:
+        print(f"  {RE}write failed: {e}{R}\n")
+        print(f"  {Y}task content is still in the session — try again or copy from above{R}\n")
 
 
 def do_handoff(profile, s, filename, claude_md):
@@ -579,6 +587,8 @@ def do_handoff(profile, s, filename, claude_md):
 
     print()
     reply, i, o, sid = run_claude_safe(
+        # skip_perms: handoff is text-only output — the agent writes markdown
+        # to stdout, not files. no permission mode needed or desired.
         profile, s, msg, claude_md, spinner_msg="writing task", skip_perms=True
     )
     if reply is None:
@@ -793,6 +803,8 @@ def run():
     while True:
         try:
             line = ps.prompt(vi_prompt).strip()
+            if line.startswith("/"):
+                line = " ".join(line.split())
         except (EOFError, KeyboardInterrupt):
             save_session(s)
             clear_title()
@@ -877,7 +889,10 @@ def run():
                 print(f"  {Y}switching to plan mode{R} — what are we planning?\n")
                 save_session(s)
             else:
-                do_handoff(profile, s, filename, claude_md)
+                try:
+                    do_handoff(profile, s, filename, claude_md)
+                except Exception as e:
+                    print(f"\nerror: {e}\n")
 
         elif line in ("/clear", "/compact"):
             s["session_id"] = None
